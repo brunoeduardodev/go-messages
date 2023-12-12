@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
+	"github.com/brunoeduardodev/go-messages/utils"
 	"github.com/gorilla/websocket"
 )
 
@@ -11,7 +13,8 @@ var upgrader = websocket.Upgrader{}
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("<h1>Hello</h1>"))
+		template := utils.Must(template.ParseFiles("templates/index.html"))
+		template.Execute(w, nil)
 	})
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
