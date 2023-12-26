@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -10,6 +12,21 @@ import (
 )
 
 var upgrader = websocket.Upgrader{}
+
+type Json = map[string]interface{}
+type ClientMessage struct {
+	Message string `json:"message"`
+}
+
+var messages = []string{}
+var connections = []*websocket.Conn{}
+
+func getChatHTML() string {
+	var messageBuffer bytes.Buffer
+	template := utils.Must(template.ParseFiles("templates/chat-room.html"))
+	template.Execute(&messageBuffer, Json{"Messages": messages})
+	return messageBuffer.String()
+}
 
 func main() {
 	fs := http.FileServer(http.Dir("./static"))
@@ -29,7 +46,31 @@ func main() {
 			return
 		}
 
-		conn.WriteMessage(1, []byte("Hello from server!"))
+		connections = append(connections, conn)
+
+		chatHtml := getChatHTML()
+		conn.WriteMessage(1, []byte(chatHtml))
+
+		for {
+			_, rawMessage, err := conn.ReadMessage()
+			if err != nil {
+				return
+			}
+
+			var clientMessage ClientMessage
+			err = json.Unmarshal(rawMessage, &clientMessage)
+			if err != nil {
+				fmt.Printf("Invalid message: %v\n", err)
+				return
+			}
+
+			messages = append(messages, clientMessage.Message)
+			for _, connection := range connections {
+				chatHtml := getChatHTML()
+				connection.WriteMessage(1, []byte(chatHtml))
+			}
+		}
+
 	})
 
 	fmt.Printf("🚀 Server started at http://localhost:8000/ \n")

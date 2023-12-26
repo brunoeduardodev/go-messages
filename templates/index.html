@@ -4,11 +4,59 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="/static/output.css" rel="stylesheet" />
-    <title>Go Messages</title>
+    <script
+      src="https://unpkg.com/htmx.org@1.9.9"
+      integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
   </head>
-  <body class="w-full min-h-[100dvh] flex flex-col bg-stone-900 text-white">
-    <h1 class="text-3xl">Hello World!</h1>
+  <body
+    class="w-full min-h-[100dvh] flex flex-col bg-stone-900 text-white p-6 gap-6 items-center"
+    hx-ext="ws"
+    ws-connect="/ws"
+  >
+    <h1 class="text-3xl">Go Messages</h1>
 
-    <button>Click Me</button>
+    <form
+      id="form"
+      ws-send
+      class="flex gap-1 items-center bg-stone-800 border border-stone-200 rounded-md max-w-lg w-full pr-2"
+      onsubmit="event.preventDefault();"
+    >
+      <input
+        type="text"
+        name="message"
+        placeholder="Enter your message"
+        class="text-white bg-transparent p-2 w-full"
+      />
+      <button type="submit">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="lucide lucide-send-horizontal"
+        >
+          <path d="m3 3 3 9-3 9 19-9Z" />
+          <path d="M6 12h16" />
+        </svg>
+      </button>
+    </form>
+
+    <div class="chat-container w-full bg-stone-800 min-h-[500px]">
+      <div id="chat_room" hx-swap-oob="morphdom"></div>
+    </div>
+
+    <script>
+      document.body.addEventListener("htmx:wsAfterSend", function (event) {
+        document.getElementById("form").reset();
+      });
+    </script>
   </body>
 </html>
