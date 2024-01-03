@@ -26,8 +26,8 @@
     >
       <input
         type="text"
-        name="message"
-        placeholder="Enter your message"
+        name="username"
+        placeholder="Enter your username"
         class="text-white bg-transparent p-2 w-full"
       />
       <button type="submit">
@@ -49,7 +49,7 @@
       </button>
     </form>
 
-    <div class="chat-container w-full bg-stone-800 min-h-[500px]">
+    <div class="chat-container w-full bg-stone-800 min-h-[500px] rounded-md">
       <div id="chat_room" hx-swap-oob="morphdom"></div>
     </div>
 

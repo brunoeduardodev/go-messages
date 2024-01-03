@@ -1,5 +1,5 @@
 <div id="chat_room" class="flex flex-col gap-4">
   {{range .Messages}}
-  <div>Message: {{.}}</div>
+  <div>{{.Username}}: {{.Content}}</div>
   {{end}}
 </div>

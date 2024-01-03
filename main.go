@@ -15,10 +15,16 @@ var upgrader = websocket.Upgrader{}
 
 type Json = map[string]interface{}
 type ClientMessage struct {
-	Message string `json:"message"`
+	Message  string `json:"message"`
+	Username string `json:"username"`
 }
 
-var messages = []string{}
+type Message struct {
+	Content  string
+	Username string
+}
+
+var messages = []Message{}
 var connections = []*websocket.Conn{}
 
 func getChatHTML() string {
@@ -28,7 +34,17 @@ func getChatHTML() string {
 	return messageBuffer.String()
 }
 
+func getSendMessageHTML() string {
+	var messageBuffer bytes.Buffer
+	template := utils.Must(template.ParseFiles("templates/send-message-form.html"))
+	template.Execute(&messageBuffer, nil)
+	return messageBuffer.String()
+
+}
+
 func main() {
+	usernames := map[string]string{}
+
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
@@ -64,7 +80,19 @@ func main() {
 				return
 			}
 
-			messages = append(messages, clientMessage.Message)
+			if clientMessage.Username != "" {
+				usernames[conn.LocalAddr().String()] = clientMessage.Username
+
+				sendMessageForm := getSendMessageHTML()
+				conn.WriteMessage(1, []byte(sendMessageForm))
+				continue
+			}
+
+			if usernames[conn.LocalAddr().String()] == "" {
+				continue
+			}
+
+			messages = append(messages, Message{Content: clientMessage.Message, Username: usernames[conn.LocalAddr().String()]})
 			for _, connection := range connections {
 				chatHtml := getChatHTML()
 				connection.WriteMessage(1, []byte(chatHtml))
